@@ -1,6 +1,6 @@
  # Portfolio Tracker
 
-A command-line interface (CLI) investment portfolio tracker built for the "Vermogensbeheer Assignment Portfolio Tracker". The application follows the Model-View-Controller (MVC) architecture as desired in the assignment. It will allows users to manage a portfolio, get live prices from yahoo finance, visualise historical data, 
+A command-line interface (CLI) investment portfolio tracker built for the "Vermogensbeheer Assignment Portfolio Tracker". The application follows the Model-View-Controller (MVC) architecture as desired in the assignment. It will allow users to manage a portfolio, get live prices from yahoo finance, visualise historical data, 
 and perform quantitative risk analysis. 
 
 ---
@@ -8,7 +8,7 @@ and perform quantitative risk analysis.
 ## Features
 
 - **Portfolio Management** — add and remove assets (to the portfolio) with ticker, sector, asset class, quantity and purchase price
-- **Live Prices** — get real-time and historical prices via yaho finance
+- **Live Prices** — get real-time and historical prices via yahoo finance
 - **Portfolio Overview** — view current values, transaction values and P&L per asset
 - **Weight Analysis** — calculate portfolio weights by asset, sector and asset class
 - **Price Charts** — generate historical price charts for one or multiple tickers
@@ -124,3 +124,46 @@ python main.py sharpe --rf 0.03        # custom risk-free rate
 ```
 
 ---
+
+## Quantitative Methods
+
+### Monte Carlo Simulation
+Portfolio paths are simulated using the **Geometric Brownian Motion** (GBM) closed form solution:
+
+$$S_t = S_0 \cdot e^{(\mu - \frac{\sigma^2}{2})t + \sigma \sqrt{t} \cdot Z}$$
+
+Where:
+- $\mu$ = annualised drift estimated from 2 years of historical log returns
+- $\sigma$ = annualised volatility estimated from 2 years of historical log returns
+- $Z \sim \mathcal{N}(0,1)$ = standard normal random variable
+- The $\frac{\sigma^2}{2}$ term is the **Itô correction** ensuring unbiased simulation
+
+### Value at Risk (VaR)
+$$VaR_{\alpha} = -\text{percentile}(P\&L, 1-\alpha)$$  
+
+### Conditional Value at Risk (CVaR)
+$$CVaR_{\alpha} = -E[P\&L \mid P\&L \leq -VaR_{\alpha}]$$
+
+### Sharpe Ratio
+$$S = \frac{R_p - R_f}{\sigma_p}$$
+
+Where $R_f$ is the annual risk-free rate (default: 2%).
+
+---
+
+## Dependencies
+
+| Library | Purpose |
+|---|---|
+| `yfinance` | Live and historical price data |
+| `pandas` | Data manipulation |
+| `numpy` | Numerical computing and simulation |
+| `matplotlib` | Chart generation |
+| `rich` | Terminal tables and formatting |
+| `click` | CLI command structure |
+
+---
+
+## Author
+
+Dylan van den Bergen — MSc Quantitative Finance and Actuarial Science (QFAS), Tilburg University
