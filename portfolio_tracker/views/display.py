@@ -265,6 +265,8 @@ def plot_simulation(simulation_results: dict) -> None:
                   f"{(final_values > initial_value).mean() * 100:.1f}%\n")
     
 
+#Extra: VaR and CVaR tables and charts
+
 def show_var_cvar_table(results: dict) -> None: #The input is results from the calculate_var_cvar function in the simulation model
     """Display VaR and CVaR results in a rich table"""
 
@@ -344,6 +346,82 @@ def show_var_cvar_table(results: dict) -> None: #The input is results from the c
         f"[red]€{results['sim_var']:,.2f}[/red] with {pct} confidence\n"
         f"[bold]Monte Carlo CVaR:[/bold] In worst {100 - confidence*100:.0f}% of 1-year "
         f"scenarios, expected loss is [red]€{results['sim_cvar']:,.2f}[/red]",
+        title="Interpretation",
+        style="yellow"
+    ))
+
+
+#Another addition, showing Sharpe Ratio and risk-return metrics in a table
+def show_sharpe_table(results: dict) -> None: #results comes from the calculate_sharpe function in the simulation model
+    """Display Sharpe Ratio results in a rich table"""
+
+    sharpe = results["sharpe_ratio"]
+
+    #Color code the Sharpe Ratio based on quality. Values are based on the general consensus that I found on the internet
+    if sharpe < 0:
+        color   = "red"
+        verdict = "Poor — worse than risk-free"
+    elif sharpe < 1:
+        color   = "yellow"
+        verdict = "Suboptimal risk-adjusted return"
+    elif sharpe < 2:
+        color   = "green"
+        verdict = "Good risk-adjusted return"
+    elif sharpe < 3:
+        color   = "bright_green"
+        verdict = "Excellent risk-adjusted return"
+    else:
+        color   = "bright_green"
+        verdict = "Exceptional risk-adjusted return"
+
+    #Main table
+    table = Table(
+        title="Sharpe Ratio Analysis",
+        box=box.ROUNDED,
+        header_style="bold cyan"
+    )
+
+    table.add_column("Metric",  style="bold white", justify="left")
+    table.add_column("Value",   style="green",      justify="right")
+
+    table.add_row(
+        "Annualised Portfolio Return",
+        f"{results['portfolio_return']:.2%}"
+    )
+    table.add_row(
+        "Risk-Free Rate",
+        f"{results['risk_free_rate']:.2%}"
+    )
+    table.add_row(
+        "Excess Return",
+        f"{results['excess_return']:.2%}"
+    )
+    table.add_row(
+        "Annualised Volatility",
+        f"{results['portfolio_vol']:.2%}"
+    )
+
+    #Separator before the main result
+    table.add_section()
+
+    table.add_row(
+        "Sharpe Ratio",
+        f"[{color}][bold]{sharpe:.4f}[/bold][/{color}]"
+    )
+    table.add_row(
+        "Verdict",
+        f"[{color}]{verdict}[/{color}]"
+    )
+
+    console.print(table)
+
+    #Interpretation panel
+    console.print(Panel(
+        f"The Sharpe Ratio measures return per unit of risk.\n"
+        f"Your portfolio earns [bold]{results['excess_return']:.2%}[/bold] "
+        f"above the risk-free rate of [bold]{results['risk_free_rate']:.2%}[/bold]\n"
+        f"for every unit of volatility ([bold]{results['portfolio_vol']:.2%}[/bold] annually).\n"
+        f"Sharpe Ratio: [{color}][bold]{sharpe:.4f}[/bold][/{color}] — {verdict}",
         title="Interpretation",
         style="yellow"
     ))

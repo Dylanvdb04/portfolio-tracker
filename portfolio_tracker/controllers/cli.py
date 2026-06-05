@@ -8,7 +8,7 @@ from portfolio_tracker.views.display import (
     plot_simulation
 )   #Functions we defined in the views/display.py file to show tables and charts.
 from rich.console import Console
-from portfolio_tracker.models.simulation import run_simulation, calculate_var_cvar
+from portfolio_tracker.models.simulation import run_simulation, calculate_var_cvar, calculate_sharpe
 
 
 console = Console()
@@ -153,6 +153,23 @@ def risk(confidence):
                   f"{confidence:.0%} confidence level...[/cyan]")
     results = calculate_var_cvar(portfolio, confidence=confidence)
     show_var_cvar_table(results)
+
+#Sharpe Ratio command
+#python main.py sharpe
+#python main.py sharpe --rf 0.03
+
+@cli.command()
+@click.option("--rf",
+              default=0.02,
+              type=float,
+              help="Annual risk-free rate e.g. 0.02 for 2%")
+def sharpe(rf):
+    """Calculate the Sharpe Ratio of the portfolio"""
+    from portfolio_tracker.views.display import show_sharpe_table
+    console.print(f"[cyan]Calculating Sharpe Ratio "
+                  f"(risk-free rate: {rf:.2%})...[/cyan]")
+    results = calculate_sharpe(portfolio, risk_free_rate=rf)
+    show_sharpe_table(results)
 
 
 

@@ -187,3 +187,34 @@ def calculate_var_cvar(portfolio, confidence: float = 0.95) -> dict:
         "confidence":       confidence,
         "initial_value":    initial_value
     }
+
+#Extra, Sharpe ratio.
+
+def calculate_sharpe(portfolio, risk_free_rate: float = 0.02) -> dict:
+    """
+    Calculate the Sharpe Ratio of the portfolio
+    """
+
+    # Get historical weighted portfolio returns
+    returns = get_portfolio_returns(portfolio)
+
+    # Annualise return and volatility
+    mu_daily    = float(returns.mean())
+    sigma_daily = float(returns.std())
+
+    portfolio_return = mu_daily    * 252
+    portfolio_vol    = sigma_daily * np.sqrt(252)
+
+    # Excess return above risk-free rate
+    excess_return = portfolio_return - risk_free_rate
+
+    # Sharpe Ratio
+    sharpe_ratio = excess_return / portfolio_vol
+
+    return {
+        "sharpe_ratio":     round(sharpe_ratio, 4),
+        "portfolio_return": round(portfolio_return, 4),
+        "portfolio_vol":    round(portfolio_vol, 4),
+        "excess_return":    round(excess_return, 4),
+        "risk_free_rate":   risk_free_rate
+    }
