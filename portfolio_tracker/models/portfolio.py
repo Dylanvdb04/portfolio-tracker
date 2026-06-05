@@ -25,10 +25,24 @@ class Asset:
     def current_price(self) -> float:
         """Fetch the live current price from Yahoo Finance"""
         ticker_data = yf.Ticker(self.ticker)
-        price = ticker_data.fast_info.get("last_price")
-        if price is None:
-            raise ValueError(f"Could not fetch price for {self.ticker}")
-        return round(price, 2) #I round the price to 2 decimal places
+        
+        # Try fast_info first
+        try:
+            price = ticker_data.fast_info["last_price"]
+            if price is not None:
+                return round(float(price), 2)
+        except Exception:
+            pass
+        
+        # Fallback: use recent historical data
+        try:
+            hist = ticker_data.history(period="2d")
+            if not hist.empty:
+                return round(float(hist["Close"].iloc[-1]), 2)
+        except Exception:
+            pass
+
+        raise ValueError(f"Could not fetch price for {self.ticker}")
 
     def current_value(self) -> float:
         """Current market value of this position"""
