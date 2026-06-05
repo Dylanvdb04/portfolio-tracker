@@ -130,7 +130,9 @@ python main.py sharpe --rf 0.03        # custom risk-free rate
 ### Monte Carlo Simulation
 Portfolio paths are simulated using the **Geometric Brownian Motion** (GBM) closed form solution:
 
-$$S_t = S_0 \cdot e^{(\mu - \frac{\sigma^2}{2})t + \sigma \sqrt{t} \cdot Z}$$
+```math
+S_t = S_0 \cdot e^{(\mu - \frac{\sigma^2}{2})t + \sigma \sqrt{t} \cdot Z}
+```
 
 Where:
 - $\mu$ = annualised drift estimated from 2 years of historical log returns
@@ -139,15 +141,22 @@ Where:
 - The $\frac{\sigma^2}{2}$ term is the **Itô correction** ensuring unbiased simulation
 
 ### Value at Risk (VaR)
-$$VaR_{\alpha} = -\text{percentile}(P\&L, 1-\alpha)$$  
+
+```math
+VaR_{\alpha} = -\text{percentile}(PnL, 1-\alpha)
+```
 
 ### Conditional Value at Risk (CVaR)
-$$CVaR_{\alpha} = -E[P\&L \mid P\&L \leq -VaR_{\alpha}]$$
+
+```math
+CVaR_{\alpha} = -E[PnL \mid PnL \leq -VaR_{\alpha}]
+```
 
 ### Sharpe Ratio
-$$S = \frac{R_p - R_f}{\sigma_p}$$
 
-Where $R_f$ is the annual risk-free rate (default: 2%).
+```math
+S = \frac{R_p - R_f}{\sigma_p}
+```
 
 ---
 
