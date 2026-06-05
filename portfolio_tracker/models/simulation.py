@@ -130,3 +130,60 @@ def run_simulation(portfolio, years: int = 15, n_paths: int = 100_000) -> dict:
         "initial_value": S0,
         "percentiles":   percentiles
     }
+
+#Extra, add VaR and CVaR calculations.
+
+def calculate_var_cvar(portfolio, confidence: float = 0.95) -> dict:
+    """
+    Calculate Historical AND Simulation-based VaR and CVaR
+    """
+
+    initial_value = portfolio.total_current_value()
+
+    #Start with historical VaR and CVaR
+    #Use actual historical weighted portfolio returns
+    returns = get_portfolio_returns(portfolio) #From our function above, this is the weighted returns including all the assets. (shape is 1 x N where N is the number of trading days in the historical data)
+
+    #Convert log returns to simple daily P&L in euros
+    #P&L = portfolio value × (e^r - 1)
+    daily_pnl = initial_value * (np.exp(returns) - 1)
+
+    #VaR: the LOSS at the (1-confidence) percentile
+    #e.g. for 95% confidence → 5th percentile of P&L distribution (left tail of the distribution)
+    historical_var = float(-np.percentile(daily_pnl, (1 - confidence) * 100)) #We represent VaR as a positive number, it is intuitive that it is interpreted as a loss.
+
+    #CVaR: average of all losses beyond VaR threshold
+    #i.e. mean of all P&L values below the VaR threshold
+    threshold           = np.percentile(daily_pnl, (1 - confidence) * 100)
+    tail_losses         = daily_pnl[daily_pnl <= threshold]
+    historical_cvar     = float(-tail_losses.mean())    #Again we represent CVaR as a positive number, it is the average loss in the worst (1-confidence) % of cases. For example, if confidence is 95%, then CVaR is the average loss in the worst 5% of cases.
+
+    # Simulation-based VaR and CVaR. These calculations follow along the same logic as the historical ones.
+    #Run a 1-year simulation to get distribution of 1-year returns
+    console.print("[cyan]Running simulation for VaR/CVaR calculation...[/cyan]")
+
+    results     = run_simulation(portfolio, years=1, n_paths=100_000)
+    paths       = results["paths"]
+
+    #Final portfolio values after 1 year (last row of paths matrix) on which calculation is based
+    final_values = paths[-1, :]
+
+    #Convert final values to P&L
+    sim_pnl = final_values - initial_value
+
+    #VaR from simulation
+    sim_var = float(-np.percentile(sim_pnl, (1 - confidence) * 100))    #Again, represent as a positive number
+
+    # CVaR from simulation
+    sim_threshold   = np.percentile(sim_pnl, (1 - confidence) * 100)
+    sim_tail_losses = sim_pnl[sim_pnl <= sim_threshold]
+    sim_cvar        = float(-sim_tail_losses.mean()) #Positive number
+
+    return {
+        "historical_var":   historical_var,
+        "historical_cvar":  historical_cvar,
+        "sim_var":          sim_var,
+        "sim_cvar":         sim_cvar,
+        "confidence":       confidence,
+        "initial_value":    initial_value
+    }

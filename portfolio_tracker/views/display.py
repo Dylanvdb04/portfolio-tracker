@@ -263,3 +263,87 @@ def plot_simulation(simulation_results: dict) -> None:
     console.print(f"  [green]90th Percentile (good):   €{np.percentile(final_values, 90):,.2f}[/green]")
     console.print(f"  Probability of profit:    "
                   f"{(final_values > initial_value).mean() * 100:.1f}%\n")
+    
+
+def show_var_cvar_table(results: dict) -> None: #The input is results from the calculate_var_cvar function in the simulation model
+    """Display VaR and CVaR results in a rich table"""
+
+    confidence      = results["confidence"]
+    initial_value   = results["initial_value"]
+    pct             = f"{confidence:.0%}"
+
+    #Summary panel
+    console.print(Panel(
+        f"[bold]Portfolio Value:[/bold] €{initial_value:,.2f}  |  "
+        f"[bold]Confidence Level:[/bold] {pct}",
+        title="Risk Metrics — VaR & CVaR",
+        style="cyan"
+    ))
+
+    #Main results table
+    table = Table(
+        title=f"VaR and CVaR at {pct} Confidence Level",
+        box=box.ROUNDED,
+        header_style="bold cyan"
+    )
+
+    #Define columns
+    table.add_column("Metric",      style="bold white",  justify="left")
+    table.add_column("Method",      style="blue",        justify="center")
+    table.add_column("Value (€)",   style="bold red",    justify="right")
+    table.add_column("As % of Portfolio", style="red",   justify="right")
+
+    # Helper to calculate percentage of portfolio
+    def pct_of_portfolio(val):
+        return f"{(val / initial_value) * 100:.2f}%"
+
+    #Historical VaR
+    table.add_row(
+        f"VaR ({pct})",
+        "Historical",
+        f"€{results['historical_var']:,.2f}",
+        pct_of_portfolio(results['historical_var'])
+    )
+
+    #Simulation VaR
+    table.add_row(
+        f"VaR ({pct})",
+        "Monte Carlo",
+        f"€{results['sim_var']:,.2f}",
+        pct_of_portfolio(results['sim_var'])
+    )
+
+    # Separator
+    table.add_section()
+
+    #Historical CVaR
+    table.add_row(
+        f"CVaR ({pct})",
+        "Historical",
+        f"€{results['historical_cvar']:,.2f}",
+        pct_of_portfolio(results['historical_cvar'])
+    )
+
+    #Simulation CVaR
+    table.add_row(
+        f"CVaR ({pct})",
+        "Monte Carlo",
+        f"€{results['sim_cvar']:,.2f}",
+        pct_of_portfolio(results['sim_cvar'])
+    )
+
+    console.print(table)
+
+    #Interpretation panel
+    console.print(Panel(
+        f"[bold]Historical VaR:[/bold]  With {pct} confidence, daily loss will not exceed "
+        f"[red]€{results['historical_var']:,.2f}[/red]\n"
+        f"[bold]Historical CVaR:[/bold] In the worst {100 - confidence*100:.0f}% of days, "
+        f"expected loss is [red]€{results['historical_cvar']:,.2f}[/red]\n"
+        f"[bold]Monte Carlo VaR:[/bold]  Over 1 year, loss will not exceed "
+        f"[red]€{results['sim_var']:,.2f}[/red] with {pct} confidence\n"
+        f"[bold]Monte Carlo CVaR:[/bold] In worst {100 - confidence*100:.0f}% of 1-year "
+        f"scenarios, expected loss is [red]€{results['sim_cvar']:,.2f}[/red]",
+        title="Interpretation",
+        style="yellow"
+    ))

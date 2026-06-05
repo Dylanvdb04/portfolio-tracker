@@ -8,6 +8,8 @@ from portfolio_tracker.views.display import (
     plot_simulation
 )   #Functions we defined in the views/display.py file to show tables and charts.
 from rich.console import Console
+from portfolio_tracker.models.simulation import run_simulation, calculate_var_cvar
+
 
 console = Console()
 
@@ -134,6 +136,23 @@ def simulate():
     console.print("[cyan]Running 100,000 path simulation... this may take a moment[/cyan]")
     results = run_simulation(portfolio)
     plot_simulation(results)
+
+#VaR/ CVaR command
+#python main.py risk
+# python main.py risk --confidence 0.99
+
+@cli.command()
+@click.option("--confidence",
+              default=0.95,
+              type=float,
+              help="Confidence level e.g. 0.95 for 95%, 0.99 for 99%")
+def risk(confidence):
+    """Calculate VaR and CVaR risk metrics for the portfolio"""
+    from portfolio_tracker.views.display import show_var_cvar_table
+    console.print(f"[cyan]Calculating VaR and CVaR at "
+                  f"{confidence:.0%} confidence level...[/cyan]")
+    results = calculate_var_cvar(portfolio, confidence=confidence)
+    show_var_cvar_table(results)
 
 
 
